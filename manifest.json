@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "ChatGPT Counter",
+  "version": "0.1.0",
+  "description": "Shows token count, context-window usage, live draft tokens and feature limits on ChatGPT.",
+  "content_scripts": [
+    {
+      "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+      "js": ["src/bridge.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+      "css": ["src/styles.css"],
+      "js": ["src/vendor/o200k_base.js", "src/tokens.js", "src/ui.js", "src/main.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
