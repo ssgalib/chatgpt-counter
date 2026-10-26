@@ -83,8 +83,9 @@
 				readJson(response).then((data) => data?.mapping && emitConversation(id, data));
 			} else if (path === '/backend-api/conversation/init') {
 				readJson(response).then((data) => {
-					if (!Array.isArray(data?.limits_progress)) return;
-					last.limits = data.limits_progress;
+					if (!Array.isArray(data?.limits_progress) && !Array.isArray(data?.model_limits)) return;
+					// model_limits stays empty until a model cap is near or hit
+					last.limits = [data.limits_progress, data.model_limits].filter(Array.isArray).flat();
 					post('limits', last.limits);
 				});
 			}

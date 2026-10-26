@@ -32,7 +32,7 @@
 	}
 
 	function formatIn(ms) {
-		const mins = Math.max(0, Math.round(ms / 60000));
+		const mins = Math.max(0, Math.ceil(ms / 60000));
 		if (mins < 60) return `${mins}m`;
 		const h = Math.floor(mins / 60);
 		if (h < 24) return `${h}h ${mins % 60}m`;
@@ -51,6 +51,7 @@
 			<span class="gc-pill__count">0</span>
 			<span class="gc-pill__limit"></span>
 			<span class="gc-pill__draft" hidden></span>
+			<span class="gc-pill__reset" hidden></span>
 			<span class="gc-spinner" hidden aria-hidden="true"></span>
 		</button>
 		<div class="gc-panel" role="dialog" aria-label="ChatGPT Counter" hidden>
@@ -82,7 +83,7 @@
 				<div class="gc-seg-ctl" role="radiogroup" aria-label="Context limit"></div>
 			</div>
 			<div class="gc-section gc-limits" hidden>
-				<span class="gc-label">Feature limits</span>
+				<span class="gc-label">Limits</span>
 				<ul class="gc-limits__list"></ul>
 			</div>
 			<div class="gc-foot">
@@ -90,6 +91,9 @@
 				<button type="button" class="gc-refresh">Refresh</button>
 			</div>
 		</div>`;
+
+	// ChatGPT dropped #prompt-textarea in late 2026; keep it for older builds.
+	const COMPOSER = '#prompt-textarea, form[data-chatgpt-composer] [contenteditable="true"]';
 
 	class CounterUI {
 		constructor({ onRefresh }) {
@@ -110,6 +114,7 @@
 				count: $('.gc-pill__count'),
 				limit: $('.gc-pill__limit'),
 				pillDraft: $('.gc-pill__draft'),
+				pillReset: $('.gc-pill__reset'),
 				spinner: $('.gc-spinner'),
 				panel: $('.gc-panel'),
 				model: $('.gc-model'),
@@ -163,10 +168,14 @@
 			return readLimitPref() || autoLimit(this.metrics?.model);
 		}
 
-		// Called every second: re-finds the composer when React replaces it.
+		// Called every second: re-attaches after React wipes foreign nodes, re-finds the composer
+		// when it's replaced, and repositions since it can move without resizing (new chat -> bottom).
 		trackComposer() {
-			const form = document.querySelector('#prompt-textarea')?.closest('form') || null;
-			if (form === this.composer) return;
+			if (!this.root.isConnected) document.body.appendChild(this.root);
+			const box = document.querySelector(COMPOSER);
+			const form = box?.closest('form') || box?.parentElement || null;
+			if (this.limits.length) this.renderLimits(); // keep reset countdowns ticking
+			if (form === this.composer) return this.schedulePosition();
 			this.resizeObserver.disconnect();
 			this.composer = form;
 			if (form) {
@@ -230,7 +239,8 @@
 			this.el.pill.setAttribute(
 				'aria-label',
 				`Context: ${full.format(total)} of ${full.format(limit)} tokens, ${Math.round(pct)}%` +
-					(this.draft ? `. Draft ${full.format(this.draft)} tokens` : '')
+					(this.draft ? `. Draft ${full.format(this.draft)} tokens` : '') +
+					(this.el.pillReset.hidden ? '' : `. Limit resets in ${this.el.pillReset.textContent.slice(2)}`)
 			);
 
 			this.el.model.textContent = m?.model || '';
@@ -274,24 +284,33 @@
 		}
 
 		renderLimits() {
-			const items = this.limits.filter((l) => l?.feature_name);
+			// shortcut: model_limits entries have never been seen non-empty, so their field names are guessed;
+			// check a real one when a model cap is hit and tighten this.
+			const items = this.limits
+				.map((l) => ({ ...l, name: l?.feature_name || l?.model_slug || l?.model, resetAt: l?.reset_after || l?.resets_after }))
+				.filter((l) => l.name);
+			const now = Date.now();
+			let soonest = null; // earliest reset among used-up features and capped models, shown on the pill
 			this.el.limitsBox.hidden = !items.length;
 			this.el.limitsList.replaceChildren(
 				...items.map((l) => {
 					const li = document.createElement('li');
 					const name = document.createElement('span');
-					name.textContent = prettyFeature(l.feature_name);
+					name.textContent = l.feature_name ? prettyFeature(l.name) : `Model ${l.name}`;
 					const val = document.createElement('b');
-					const reset = Date.parse(l.reset_after);
-					val.textContent =
-						(typeof l.remaining === 'number' ? `${l.remaining} left` : '—') +
-						(Number.isFinite(reset) ? ` \u00B7 ${formatIn(reset - Date.now())}` : '');
+					const reset = Date.parse(l.resetAt);
+					const resetText = !Number.isFinite(reset) ? '' : reset > now ? `resets in ${formatIn(reset - now)}` : 'reset';
+					if ((l.remaining === 0 || !l.feature_name) && reset > now && (soonest === null || reset < soonest)) soonest = reset;
+					val.textContent = [typeof l.remaining === 'number' ? `${l.remaining} left` : '', resetText].filter(Boolean).join(' \u00B7 ') || '—';
 					li.append(name, val);
 					return li;
 				})
 			);
+			this.el.pillReset.hidden = !soonest;
+			if (soonest) this.el.pillReset.textContent = `\u23F1 ${formatIn(soonest - now)}`;
+			this.render(); // refresh the pill's aria-label
 		}
 	}
 
-	GC.ui = { CounterUI };
+	GC.ui = { CounterUI, COMPOSER };
 })();

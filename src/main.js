@@ -62,7 +62,7 @@
 	document.addEventListener(
 		'input',
 		(e) => {
-			const box = e.target.closest?.('#prompt-textarea');
+			const box = e.target.closest?.(GC.ui.COMPOSER);
 			if (!box) return;
 			clearTimeout(draftTimer);
 			draftTimer = setTimeout(() => ui.setDraft(GC.tokens.countTokens(box.innerText || box.value || '')), 120);

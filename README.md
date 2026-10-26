@@ -3,7 +3,7 @@
 Shows how full your ChatGPT context window is, live.
 
 - **Pill above the composer**: tokens in the current branch / context limit, a ring coloured by fill level (green < 70% < amber < 90% < red), a spinner while generating, and a live `+N` count of your draft.
-- **Click it** for a breakdown by role (you / ChatGPT / tools), message count, "after send" percentage, a context-limit picker, and any feature limits ChatGPT reports (`limits_progress`: deep research, image gen, …).
+- **Click it** for a breakdown by role (you / ChatGPT / tools), message count, "after send" percentage, a context-limit picker, and any limits ChatGPT reports (`limits_progress`: deep research, image gen, …; `model_limits`: message caps, sent only when you're near or at one).
 - Uses `o200k_base`, the tokenizer GPT‑4o / GPT‑5 use, so counts are close. Excludes the system prompt, hidden reasoning, images and files.
 
 ## Install (Chrome / Brave / Edge)
@@ -22,7 +22,7 @@ To update: `git pull` (or download again), then click the reload icon on the ext
 - Click the pill to open the panel:
   - **Breakdown**: tokens from you, ChatGPT and tools, plus message count and what the fill will be after you send.
   - **Context limit**: *Auto* picks the limit for the current model; choose a fixed size if your plan's window differs. The choice is remembered.
-  - **Feature limits**: remaining uses and reset times, when ChatGPT reports them.
+  - **Limits**: remaining uses and reset times for features, plus model message caps when ChatGPT reports one. The `⏱` on the pill counts down to the soonest reset of anything used up.
   - **Refresh**: recount the conversation if the number looks stale.
 - Press `Esc` or click outside to close the panel.
 - When the ring turns amber (70%) or red (90%), the chat is close to its limit and older messages may start getting dropped; start a new chat to keep full context.

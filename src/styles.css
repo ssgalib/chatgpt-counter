@@ -72,6 +72,7 @@ html.dark .gc-root, html[data-theme="dark"] .gc-root, .dark .gc-root {
 .gc-pill__count { font-weight: 600; }
 .gc-pill__limit { color: var(--gc-muted); }
 .gc-pill__draft { padding: 1px 6px; border-radius: 999px; background: var(--gc-hover); color: var(--gc-muted); font-weight: 600; }
+.gc-pill__reset { color: var(--gc-warn); font-weight: 600; }
 .gc-spinner { width: 10px; height: 10px; border: 2px solid var(--gc-line); border-top-color: var(--gc-assistant); border-radius: 50%; animation: gc-spin 700ms linear infinite; }
 @keyframes gc-spin { to { transform: rotate(360deg); } }
 
