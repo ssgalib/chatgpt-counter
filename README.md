@@ -8,7 +8,24 @@ Shows how full your ChatGPT context window is, live.
 
 ## Install (Chrome / Brave / Edge)
 
-`chrome://extensions` → Developer mode → **Load unpacked** → pick this folder.
+1. Download this repo: `git clone https://github.com/ssgalib/chatgpt-counter.git`, or **Code → Download ZIP** and unzip it.
+2. Open `chrome://extensions` (or `brave://extensions`, `edge://extensions`) and turn on **Developer mode**.
+3. Click **Load unpacked** and pick the `chatgpt-counter` folder (the one containing `manifest.json`).
+4. Open or refresh [chatgpt.com](https://chatgpt.com).
+
+To update: `git pull` (or download again), then click the reload icon on the extension's card and refresh ChatGPT.
+
+## How to use
+
+- Open any chat. The pill sits just above the message box and shows `tokens used / context limit`.
+- Start typing: the `+N` badge shows how many tokens your draft adds.
+- Click the pill to open the panel:
+  - **Breakdown**: tokens from you, ChatGPT and tools, plus message count and what the fill will be after you send.
+  - **Context limit**: *Auto* picks the limit for the current model; choose a fixed size if your plan's window differs. The choice is remembered.
+  - **Feature limits**: remaining uses and reset times, when ChatGPT reports them.
+  - **Refresh**: recount the conversation if the number looks stale.
+- Press `Esc` or click outside to close the panel.
+- When the ring turns amber (70%) or red (90%), the chat is close to its limit and older messages may start getting dropped; start a new chat to keep full context.
 
 ## How it works
 
